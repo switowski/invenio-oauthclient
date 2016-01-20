@@ -94,6 +94,7 @@ def oauth_register(account_info, form_data=None):
         email = form_data.get("email")
 
     if email:
+        form_data = form_data or {'email': email}
         form_data['password'] = None
         user = register_user(**form_data)
         return user

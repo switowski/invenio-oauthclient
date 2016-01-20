@@ -33,17 +33,7 @@ from invenio_oauthclient.contrib.orcid import account_info
 from invenio_oauthclient.models import UserIdentity
 from invenio_oauthclient.views.client import serializer
 
-
-def mock_response(oauth, remote_app='test', data=None):
-    """Mock the oauth response to use the remote."""
-    oauth.remote_apps[remote_app].handle_oauth2_response = MagicMock(
-        return_value=data
-    )
-
-
-def _get_state():
-    return serializer.dumps({'app': 'orcid', 'sid': _create_identifier(),
-                             'next': None, })
+from .helpers import mock_response, get_state
 
 
 def test_account_info(app, example):
@@ -100,7 +90,7 @@ def test_authorized_signup(app, example, orcid_bio):
         resp = c.get(
             url_for("invenio_oauthclient.authorized",
                     remote_app='orcid', code='test',
-                    state=_get_state()))
+                    state=get_state('orcid')))
         assert resp.status_code == 302
         assert resp.location == (
             "http://localhost" +
@@ -163,7 +153,7 @@ def test_authorized_reject(app, example):
             url_for("invenio_oauthclient.authorized",
                     remote_app='orcid', error='access_denied',
                     error_description='User denied access',
-                    state=_get_state()))
+                    state=get_state('orcid')))
         assert resp.status_code in (301, 302)
         assert resp.location == (
             "http://localhost/"
@@ -228,7 +218,7 @@ def test_authorized_already_authenticated(models_fixture, example, orcid_bio):
         resp = client.get(
             url_for("invenio_oauthclient.authorized",
                     remote_app='orcid', code='test',
-                    state=_get_state()))
+                    state=get_state('orcid')))
         httpretty.disable()
 
         # Assert database state (Sign-up complete)
